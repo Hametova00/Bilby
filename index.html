@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bilby — мультфильм</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marck+Script&family=Unbounded:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: кино-сайт, спокойный и стильный, как страница фильма в кинотеатре
+   IDEA: каждая вкладка — кадр из мультика на весь экран, а текст лежит на стеклянных панелях поверх
+   PICTURE: фон меняется плавно и медленно «дышит» (эффект Кена Бёрнса); главы сюжета, герои и галерея сами меняют фон
+   COLOUR and TYPE: тёмное стекло, тёплый песочный акцент #f39a5b и розовый #f6a6a8; Unbounded для заголовков, Manrope для текста, Marck Script для логотипа
+   LAYOUT: прозрачная шапка со вкладками, контент слева, справа видно кадр; на телефоне панели во всю ширину */
+:root{color-scheme:dark;--acc:#f39a5b;--pink:#f6a6a8;--glass:rgba(16,11,8,.58);--line:rgba(255,255,255,.16);--ink:#fff8f0;--soft:#e6d6c8}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:#140d09;color:var(--ink);font:16px/1.65 Manrope,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Unbounded,system-ui,sans-serif;font-weight:700;line-height:1.08;margin:0 0 .5em;text-wrap:balance}
+h2{font-size:clamp(28px,3.6vw,46px)}h3{font-size:18px;font-weight:500}
+p{margin:0 0 1em;max-width:64ch}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+
+/* фон */
+.bg{position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;opacity:0;transition:opacity 1.2s ease}
+.bg.on{opacity:1;animation:kb 22s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.09) translate(-1%,-1%)}}
+.shade{position:fixed;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(12,8,5,.82) 0%,rgba(12,8,5,.45) 50%,rgba(12,8,5,.1) 100%),linear-gradient(0deg,rgba(12,8,5,.7),transparent 40%)}
+.tc{position:fixed;right:22px;bottom:18px;z-index:5;font:600 12px Manrope;color:rgba(255,255,255,.75);background:rgba(0,0,0,.35);padding:5px 12px;border-radius:999px;backdrop-filter:blur(6px);white-space:nowrap}
+
+/* шапка */
+header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:20px;padding:14px max(4vw,16px);background:linear-gradient(rgba(12,8,5,.7),transparent)}
+.logo{font:400 40px/1 "Marck Script",cursive;color:#fff;text-decoration:none;flex:none;text-shadow:0 3px 18px rgba(0,0,0,.5)}
+nav{display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid var(--line);backdrop-filter:blur(14px);overflow-x:auto;scrollbar-width:none;margin:0 auto}
+nav a{flex:none;color:#fff;text-decoration:none;font:600 14px Manrope;padding:9px 16px;border-radius:999px;min-height:40px;display:flex;align-items:center;transition:background .25s,color .25s}
+nav a:hover{background:rgba(255,255,255,.12)}
+nav a.on{background:#fff;color:#1a100a}
+
+/* вкладки */
+main{min-height:100vh}
+.tab{display:none;min-height:100vh;padding:110px max(5vw,18px) 70px}
+.tab.on{display:block;animation:rise .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.wrap{max-width:1240px;margin:0 auto}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:24px;padding:clamp(20px,3vw,34px);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2)}
+.kick{font:600 13px Manrope;color:var(--acc);margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:10px 22px;border-radius:999px;border:1px solid #fff;background:#fff;color:#1a100a;font:800 15px Manrope;text-decoration:none;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+
+/* главная */
+.home{display:grid;grid-template-rows:1fr auto;min-height:calc(100vh - 180px);gap:30px}
+.hero{align-self:center;max-width:640px}
+.hero h1{font:400 clamp(90px,15vw,190px)/.9 "Marck Script",cursive;margin:0 0 10px;text-shadow:0 8px 40px rgba(0,0,0,.45)}
+.hero .sub{font:500 clamp(18px,2vw,22px)/1.4 Unbounded;margin-bottom:18px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 24px;color:var(--soft);font-weight:600}
+.meta span{white-space:nowrap}.meta span+span::before{content:"·";margin-right:18px;color:var(--acc)}
+.slides{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.sl{position:relative;padding:0;border:0;border-radius:14px;overflow:hidden;aspect-ratio:2.35;background:#000;opacity:.6;transition:opacity .3s,transform .3s}
+.sl:hover,.sl.on{opacity:1;transform:translateY(-4px)}
+.sl img{width:100%;height:100%;object-fit:cover}
+.sl i{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--acc)}
+.sl.on i{animation:fill 6s linear forwards}
+@keyframes fill{to{width:100%}}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;margin-top:22px}
+.num b{display:block;font:700 clamp(30px,3.4vw,42px)/1 Unbounded;color:var(--acc)}
+
+/* сюжет */
+.story{display:grid;grid-template-columns:minmax(0,520px) 1fr;gap:20px;min-height:calc(100vh - 180px);align-content:space-between}
+.story .glass{grid-column:1}
+.story{align-content:start}
+.sum p{margin-bottom:.7em}.sum h2{font-size:clamp(24px,2.6vw,32px)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}.tags span{background:rgba(243,154,91,.2);border:1px solid var(--acc);color:#ffd9bd;padding:4px 12px;border-radius:999px;font-weight:700;font-size:14px}
+.hint2{color:var(--soft);font-size:14px;margin:12px 0 0}
+@media(min-width:1100px){.story{grid-template-columns:minmax(0,520px) minmax(0,520px)}.story .sum{grid-column:2;grid-row:1}.story #chBox{grid-row:1}}
+.chn{font:700 72px/1 Unbounded;color:transparent;-webkit-text-stroke:1.5px var(--acc)}
+.gifbox{margin-top:16px;border-radius:16px;overflow:hidden;display:none}.gifbox.on{display:block}
+.strip{grid-column:1/-1;display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x mandatory}
+.ch{flex:0 0 150px;scroll-snap-align:start;padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#000;position:relative;transition:.25s;opacity:.65}
+.ch img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.ch span{position:absolute;left:6px;bottom:4px;font:800 12px Manrope;text-shadow:0 1px 4px #000}
+.ch.on,.ch:hover{opacity:1;border-color:var(--acc)}
+.arrows{display:flex;gap:10px;margin-top:18px}
+.arr{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:20px}
+.arr:hover{background:rgba(255,255,255,.2)}
+
+/* история */
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
+.tl{list-style:none;margin:20px 0 0;padding:0}
+.tl li{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.tl time{font:700 14px Unbounded;color:var(--acc)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0}dt{color:var(--soft)}dd{margin:0;font-weight:700}
+.pics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.pics img{border-radius:12px;aspect-ratio:16/9;object-fit:cover}
+
+/* персонажи */
+.cast{display:flex;flex-wrap:wrap;gap:14px;margin:22px 0}
+.av{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;padding:0;font:600 14px Manrope;width:96px}
+.av img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.35);transition:.3s}
+.av.on img,.av:hover img{border-color:var(--acc);transform:scale(1.08)}
+.who{max-width:560px}
+.role{display:inline-block;background:var(--pink);color:#3a1416;padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px;margin-bottom:12px}
+.danger{display:flex;gap:4px;margin-top:6px}.danger i{width:28px;height:8px;border-radius:9px;background:rgba(255,255,255,.2)}.danger i.f{background:var(--acc)}
+
+/* отзывы */
+.awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin-bottom:18px}
+.aw{display:flex;gap:12px;align-items:center;font-weight:700}
+.aw svg{flex:none;width:40px;height:40px}
+.quote{font:500 clamp(20px,2.3vw,28px)/1.35 Unbounded;margin:6px 0 16px;min-height:4.2em}
+.dots{display:flex;gap:8px;margin-top:16px}.dots button{width:12px;height:12px;border-radius:50%;border:0;background:rgba(255,255,255,.3);padding:0}.dots button.on{background:var(--acc);width:30px;border-radius:9px}
+.stars{display:flex;gap:2px}.stars button{background:none;border:0;padding:4px;width:44px;height:44px;color:rgba(255,255,255,.3)}.stars button.on{color:#ffc94a}.stars svg{width:30px;height:30px;fill:currentColor}
+form{display:grid;gap:10px}
+input,textarea{font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:14px;padding:12px 14px;width:100%}
+.mine{display:grid;gap:10px;margin-top:14px}.mine div{background:rgba(255,255,255,.07);border-radius:14px;padding:12px 14px}
+
+/* мнение */
+.opinion{max-width:760px}
+.opinion p{font-size:18px;color:#fff}
+.score{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}.score b{font:700 clamp(56px,7vw,80px)/1 Unbounded;color:var(--acc)}
+.bar{margin-bottom:12px}.bar span{display:flex;justify-content:space-between;font-weight:700}
+.bar i{display:block;height:8px;border-radius:9px;background:rgba(255,255,255,.15);margin-top:5px;overflow:hidden}.bar i b{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--pink));transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+
+/* галерея */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.filters button{min-height:42px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-weight:600}
+.filters button.on{background:#fff;color:#1a100a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px}
+.grid button{position:relative;padding:0;border:0;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9}
+.grid img{width:100%;height:100%;object-fit:cover;transition:transform .5s}.grid button:hover img{transform:scale(1.08)}
+.grid span{position:absolute;right:6px;bottom:5px;font:800 11px Manrope;background:rgba(0,0,0,.55);padding:2px 7px;border-radius:6px}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.94);display:none;place-items:center;padding:70px 16px}
+.lb.on{display:grid}.lb img{max-height:72vh;border-radius:14px}
+.lbbar{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 16px}
+.lb .x{position:absolute;top:16px;right:16px}
+
+footer{padding:18px max(5vw,18px);font-size:13px;color:rgba(255,255,255,.6);text-align:center}
+
+
+/* широкие экраны и пыль */
+.dust{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.dust i{position:absolute;border-radius:50%;background:rgba(255,226,190,.55);box-shadow:0 0 8px rgba(255,200,140,.6);animation:drift linear infinite}
+@keyframes drift{0%{transform:translate(0,0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translate(55vw,-25vh);opacity:0}}
+.glow{position:fixed;right:-10vw;top:-20vh;width:60vw;height:60vw;border-radius:50%;z-index:-1;pointer-events:none;background:radial-gradient(rgba(255,190,120,.18),transparent 60%);animation:breathe 7s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.1);opacity:.7}}
+@media(min-width:1600px){header,main,footer,.tc{zoom:1.2}.tab{min-height:calc(100vh / 1.2)}.home,.story{min-height:calc(100vh / 1.2 - 180px)}}
+@media(min-width:2100px){header,main,footer,.tc{zoom:1.45}.tab{min-height:calc(100vh / 1.45)}.home,.story{min-height:calc(100vh / 1.45 - 180px)}}
+@media(min-width:2800px){header,main,footer,.tc{zoom:1.8}.tab{min-height:calc(100vh / 1.8)}.home,.story{min-height:calc(100vh / 1.8 - 180px)}}
+
+@media(max-width:860px){.cols,.story{grid-template-columns:minmax(0,1fr)}.slides{grid-template-columns:repeat(5,120px);overflow-x:auto}}
+@media(max-width:640px){header{flex-direction:column;align-items:stretch;gap:6px;padding:10px 12px;background:rgba(12,8,5,.85)}.logo{text-align:center;font-size:34px}nav{margin:0}.tab{padding-top:130px}.shade{background:rgba(12,8,5,.55)}.tl li{grid-template-columns:1fr;gap:2px}.tc{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bg" id="bgA"></div><div class="bg" id="bgB"></div><div class="shade"></div><div class="glow"></div><div class="dust" id="dust"></div>
+<div class="tc" id="tc"></div>
+
+<header>
+<a class="logo" href="#home">Bilby</a>
+<nav id="nav"><a href="#home">Главная</a><a href="#story">Сюжет</a><a href="#about">История</a><a href="#cast">Персонажи</a><a href="#reviews">Отзывы</a><a href="#opinion">Моё мнение</a></nav>
+</header>
+
+<main>
+<!-- ГЛАВНАЯ -->
+<section class="tab" id="t-home" data-bg="2_05">
+<div class="wrap home">
+<div class="hero">
+<h1>Bilby</h1>
+<p class="sub">Маленький ворчун, пушистый птенец и самая опасная пустыня на свете</p>
+<div class="meta"><span>2018</span><span>8 минут</span><span>Без слов</span><span>DreamWorks Animation</span></div>
+<div class="row"><a class="btn" href="#story">Смотреть сюжет</a><a class="btn ghost" href="#cast">Герои мультика</a></div>
+</div>
+<div class="slides" id="slides"></div>
+</div>
+<div class="wrap three">
+<div class="glass"><div class="kick">О чём мультик</div><p style="margin:0">Билби живёт один в австралийской пустыне. Однажды к нему прибивается птенец альбатроса, и ворчуну приходится вести малыша через все опасности к морю.</p></div>
+<div class="glass num"><div class="kick">В цифрах</div><b>3</b><p style="margin:0">режиссёра, и для всех троих это первый фильм</p></div>
+<div class="glass num"><div class="kick">Награды</div><b>2 + «Оскар»</b><p style="margin:0">два фестивальных приза и место в шорт-листе «Оскара»</p></div>
+</div>
+</section>
+
+<!-- СЮЖЕТ -->
+<section class="tab" id="t-story">
+<div class="wrap story">
+<div class="glass sum">
+<div class="kick">Коротко о сюжете</div>
+<h2>О чём этот мультик</h2>
+<p>Билби — маленький ушастый зверёк из австралийской пустыни. Он живёт один, и ему нужны только ягоды и своя нора.</p>
+<p>Однажды рядом с ним падает потерявшийся птенец альбатроса. Билби хочет от него отделаться, но малыш ходит за ним по пятам. И каждый раз, когда птенцу грозит беда, Билби бросается его спасать.</p>
+<p>Так он проводит птенца через всю пустыню к морю, где живут альбатросы. Там малышу пора учиться летать, а Билби — отпустить того, к кому он привязался.</p>
+<div class="tags"><span>Дружба</span><span>Забота</span><span>Смелость</span><span>Умение отпустить</span></div>
+<p class="hint2">А дальше — весь сюжет по главам. Листай стрелками или нажимай на кадры внизу: фон страницы будет меняться вместе с главой.</p>
+</div>
+<div class="glass" id="chBox" aria-live="polite"></div>
+<div class="strip" id="strip"></div>
+</div>
+</section>
+
+<!-- ИСТОРИЯ -->
+<section class="tab" id="t-about" data-bg="0_31">
+<div class="wrap cols">
+<div class="glass">
+<div class="kick">Краткая история</div>
+<h2>Как появился «Билби»</h2>
+<p>Сначала DreamWorks делала большой мультфильм-мюзикл «Larrikins» про австралийских зверей. В 2017 году его отменили. Герои уже были нарисованы, и трое аниматоров решили дать им вторую жизнь в короткометражке.</p>
+<p>Идею собрали всего за две недели. Австралию выбрали нарочно: создатели искали самое враждебное место, где всё вокруг хочет тебя съесть. А ещё на этом мультике студия проверяла свою новую технологию рендеринга.</p>
+<ul class="tl">
+<li><time>Март 2017</time><span>Большой фильм «Larrikins» отменяют.</span></li>
+<li><time>2017</time><span>У DreamWorks появляется программа короткометражек. «Билби» — один из первых проектов.</span></li>
+<li><time>16.06.2018</time><span>Мировая премьера на закрытии фестиваля анимации в Анси.</span></li>
+<li><time>Лето 2018</time><span>Приз жюри SIGGRAPH и приз зрителей фестиваля в Палм-Спрингс.</span></li>
+<li><time>Декабрь 2018</time><span>Шорт-лист «Оскара» и выход на YouTube-канале DreamWorks.</span></li>
+<li><time>Май 2019</time><span>Выходит на дисках вместе с «Как приручить дракона 3».</span></li>
+</ul>
+</div>
+<div class="glass">
+<div class="kick">Команда</div>
+<dl>
+<dt>Режиссёры</dt><dd>Лирон Топаз, Пьер Перифель, Хуан Пабло Санс</dd>
+<dt>Продюсеры</dt><dd>Келли Куни Чилелла, Джефф Херманн</dd>
+<dt>Музыка</dt><dd>Бенджамин Уоллфиш</dd>
+<dt>Билби</dt><dd>Дэвид П. Смит</dd>
+<dt>Птенец</dt><dd>Ди Брэдли Бейкер</dd>
+<dt>Герои</dt><dd>по персонажам Гарри Криппса</dd>
+</dl>
+<div class="pics"><img src="th/1_12.jpg" alt="Нора Билби" loading="lazy"><img src="th/3_31.jpg" alt="Оазис" loading="lazy"><img src="th/4_05.jpg" alt="Утёс у моря" loading="lazy"><img src="th/6_31.jpg" alt="Билби на траве" loading="lazy"></div>
+<p style="margin:16px 0 0;color:var(--soft)">Билби — настоящий зверь: австралийское сумчатое, которое живёт в норах. Сейчас этот вид под угрозой исчезновения.</p>
+</div>
+</div>
+</section>
+
+<!-- ПЕРСОНАЖИ -->
+<section class="tab" id="t-cast">
+<div class="wrap">
+<div class="kick">Персонажи</div>
+<h2>Кто есть кто</h2>
+<div class="cast" id="castRow"></div>
+<div class="glass who" id="who" aria-live="polite"></div>
+</div>
+</section>
+
+<!-- ОТЗЫВЫ -->
+<section class="tab" id="t-reviews" data-bg="4_05">
+<div class="wrap">
+<div class="kick">Отзывы и награды</div>
+<h2>Что говорят о мультике</h2>
+<div class="awards">
+<div class="glass aw"><svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="12" fill="#f3c04f"/><circle cx="20" cy="16" r="7" fill="#fbe39a"/><path d="M12 25l-3 12 6-3 3 5 2-12M28 25l3 12-6-3-3 5-2-12" fill="#f39a5b"/></svg>Приз жюри SIGGRAPH 2018</div>
+<div class="glass aw"><svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="12" fill="#f3c04f"/><circle cx="20" cy="16" r="7" fill="#fbe39a"/><path d="M12 25l-3 12 6-3 3 5 2-12M28 25l3 12-6-3-3 5-2-12" fill="#f6a6a8"/></svg>Приз зрителей Palm Springs ShortFest</div>
+<div class="glass aw"><svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="12" fill="#f3c04f"/><circle cx="20" cy="16" r="7" fill="#fbe39a"/><path d="M12 25l-3 12 6-3 3 5 2-12M28 25l3 12-6-3-3 5-2-12" fill="#8fc7c9"/></svg>Шорт-лист «Оскара»: 10 лучших</div>
+</div>
+<div class="cols">
+<div class="glass">
+<div class="quote" id="quote"></div>
+<div id="qby" style="font-weight:800;color:var(--acc)"></div>
+<div class="row" style="align-items:center;margin-top:10px"><button class="arr" id="qp" aria-label="Предыдущий">←</button><button class="arr" id="qn" aria-label="Следующий">→</button><div class="dots" id="dots" style="margin:0 0 0 8px"></div></div>
+</div>
+<div class="glass">
+<h3>Твой отзыв</h3>
+<form id="rf"><div class="stars" id="stars"></div><input id="rn" maxlength="40" placeholder="Имя" required><textarea id="rt" rows="3" maxlength="300" placeholder="Что понравилось?" required></textarea><button class="btn" type="submit">Отправить</button></form>
+<p style="font-size:13px;color:var(--soft);margin:10px 0 0">Отзывы сохраняются только в твоём браузере.</p>
+<div class="mine" id="mine"></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- МНЕНИЕ -->
+<section class="tab" id="t-opinion" data-bg="6_41">
+<div class="wrap cols">
+<div class="glass opinion">
+<div class="kick">Моё мнение</div>
+<h2>Маленький мультик с большим сердцем</h2>
+<p>«Билби» — очень милый и добрый мультик. Он идёт всего восемь минут, и в нём нет ни одного слова. Но всё и так понятно: по глазам, по ушам, по тому, как герои двигаются.</p>
+<p>Сначала Билби совсем не хочет возиться с птенцом. Он просто хотел поесть ягод и спрятаться в норе. Но птенец такой беспомощный, что бросить его не получается. Мне понравилось, как Билби меняется: из ворчуна он становится настоящим заботливым другом.</p>
+<p>Картинка очень красивая. Пустыня яркая и оранжевая, а в конце — зелёный утёс и синее море. Шерсть выглядит такой мягкой, что её хочется потрогать. Смешных моментов тоже много, особенно когда Билби спасает птенца от всех подряд.</p>
+<p>Конец немного грустный, потому что птенцу пора улетать. Но потом становится тепло: он не забыл Билби. Для меня этот мультик про то, что любить кого-то — значит иногда его отпускать.</p>
+<p style="margin:0">Жалко, что большой фильм отменили. Было бы здорово посмотреть полную историю про этих героев.</p>
+</div>
+<div class="glass">
+<div class="score"><b id="total">0</b><span>из 10</span></div>
+<div id="bars"></div>
+<img src="gif/cuddle.gif" alt="Птенец прижимается к Билби" style="border-radius:14px;margin-top:14px" loading="lazy">
+</div>
+</div>
+</section>
+
+</main>
+
+
+<footer>Фан-сайт о короткометражке «Bilby» (DreamWorks Animation, 2018). Все кадры и гифки — из самого мультфильма, права принадлежат DreamWorks Animation.</footer>
+
+<script>
+{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const tcOf=n=>{const[m,s]=n.split('_');return m+':'+s};
+
+/* фон с плавной сменой */
+let cur='',front=$('#bgA'),back=$('#bgB');
+function setBg(n){if(n===cur)return;cur=n;const im=new Image();im.onload=()=>{back.style.backgroundImage=`url(bg/${n}.jpg)`;back.classList.add('on');front.classList.remove('on');[front,back]=[back,front]};im.src='bg/'+n+'.jpg';$('#tc').textContent='Кадр из мультика · '+tcOf(n)}
+
+/* вкладки */
+const tabs=['home','story','about','cast','reviews','opinion'];let homeTimer=null;
+function show(){const id=tabs.includes(location.hash.slice(1))?location.hash.slice(1):'home';
+  $$('.tab').forEach(t=>t.classList.toggle('on',t.id==='t-'+id));
+  $$('nav a').forEach(a=>{const on=a.getAttribute('href')==='#'+id;a.classList.toggle('on',on);if(on)a.scrollIntoView({block:'nearest',inline:'center'})});
+  scrollTo(0,0);clearInterval(homeTimer);
+  const t=$('#t-'+id);
+  if(id==='home')slide(si,true);else if(id==='story')chapter(ci);else if(id==='cast')pick(pi);else setBg(t.dataset.bg);
+  if(id==='opinion')bars()}
+addEventListener('hashchange',show);
+
+/* главная: слайды */
+const slidesBg=['2_05','4_56','3_31','4_21','7_02'];let si=0;
+$('#slides').innerHTML=slidesBg.map((s,i)=>`<button class="sl" data-i="${i}" aria-label="Кадр ${tcOf(s)}"><img src="th/${s}.jpg" alt=""><i></i></button>`).join('');
+function slide(i,restart){si=(i+slidesBg.length)%slidesBg.length;setBg(slidesBg[si]);
+  $$('.sl').forEach((b,k)=>{b.classList.remove('on');if(k===si){void b.offsetWidth;b.classList.add('on')}});
+  clearInterval(homeTimer);homeTimer=setInterval(()=>slide(si+1),6000)}
+$('#slides').addEventListener('click',e=>{const b=e.target.closest('.sl');if(b)slide(+b.dataset.i)});
+
+/* сюжет */
+const chs=[['0_19','Утро в пустыне','Раннее утро в австралийской пустыне. Жуки катят по песку большую красную ягоду. Еды здесь мало, поэтому каждая ягода — настоящее сокровище.',null],
+['0_45','Погоня','Билби, маленький ушастый зверёк, хватает ягоду и удирает. За ним тут же гонятся хищники: в этой пустыне каждый хочет кого-нибудь съесть. Но Билби ловкий и быстрый — он уходит от погони.','run'],
+['1_12','Нора','Начинается песчаная буря. Билби прячется в своей норе и спокойно ест добычу. Он живёт один, и его это устраивает: ни о ком не надо заботиться, никто не мешает.',null],
+['2_05','Встреча','Билби выходит из норы, и рядом с ним падает пушистый белый птенец альбатроса. Он совсем маленький, не умеет летать и потерялся. Билби делает вид, что его это не касается, и уходит. Но птенец решил, что Билби теперь его семья, и топает следом.','hop'],
+['2_45','Змея','Первая беда — змея, которая хочет проглотить малыша. Билби мог бы просто уйти, но не выдерживает и спасает птенца. Теперь он понимает: без него малыш пропадёт.',null],
+['3_13','Скорпионы','Дальше на пути целая армия скорпионов. Билби сажает птенца себе на голову и скачет между ними, чтобы никого не ужалили.',null],
+['3_25','Динго','Рыжие дикие собаки выслеживают птенца. Билби снова встаёт на защиту и уводит малыша от погони. Он всё ещё ворчит, но бросить птенца уже не может.','dingo'],
+['3_31','Оазис','Билби ведёт птенца через всю пустыню к морю. По дороге им попадается оазис: можно попить и отдохнуть. Но в воде прячется крокодил, и им снова приходится спасаться. Видно, что Билби уже по-настоящему привязался к малышу.','oasis'],
+['4_11','Утёс у моря','Наконец они добираются до зелёного утёса над океаном. Здесь живут альбатросы — это дом птенца. Билби понимает: малышу пора учиться летать. Он подбрасывает птенца и учит махать крыльями, но тот пока только падает ему в лапы.','toss'],
+['5_21','Хищная птица','На утёс нападает большая морская птица-хищник. Она охотится за малышом. Билби защищает птенца изо всех сил, хотя птица намного больше его.','hang'],
+['6_25','Прыжок','На краю обрыва всё решается за секунду. Билби не раздумывая прыгает вниз вслед за птенцом, хотя сам летать не умеет. И в этот момент птенец впервые по-настоящему летит. Всё заканчивается хорошо, Билби снова на траве.','fly'],
+['7_02','Через годы','Птенец вырос в большого альбатроса и улетел над океаном. Билби остался на утёсе один. Но на закате большой альбатрос возвращается к своему старому другу. Главная мысль мультика: любить — значит заботиться, а потом уметь отпустить.','sunset']];
+let ci=0;
+$('#strip').innerHTML=chs.map((c,i)=>`<button class="ch" data-i="${i}"><img src="th/${c[0]}.jpg" alt="" loading="lazy"><span>${i+1}. ${c[1]}</span></button>`).join('');
+function chapter(i){ci=(i+chs.length)%chs.length;const c=chs[ci];setBg(c[0]);
+  $('#chBox').innerHTML=`<div class="chn">${String(ci+1).padStart(2,'0')}</div><div class="kick">Глава ${ci+1} из ${chs.length}</div><h2>${c[1]}</h2><p>${c[2]}</p>
+  ${c[3]?`<button class="btn ghost" id="gbtn">▶ Посмотреть момент</button><div class="gifbox" id="gbox"><img alt="${c[1]}"></div>`:''}
+  <div class="arrows"><button class="arr" id="cp" aria-label="Предыдущая глава">←</button><button class="arr" id="cn" aria-label="Следующая глава">→</button></div>`;
+  $('#cp').onclick=()=>chapter(ci-1);$('#cn').onclick=()=>chapter(ci+1);
+  if(c[3])$('#gbtn').onclick=()=>{const g=$('#gbox');g.querySelector('img').src='gif/'+c[3]+'.gif';g.classList.add('on');$('#gbtn').remove()};
+  $$('.ch').forEach((b,k)=>b.classList.toggle('on',k===ci));$$('.ch')[ci].scrollIntoView({block:'nearest',inline:'nearest'})}
+$('#strip').addEventListener('click',e=>{const b=e.target.closest('.ch');if(b)chapter(+b.dataset.i)});
+addEventListener('keydown',e=>{if(location.hash==='#story'){if(e.key==='ArrowRight')chapter(ci+1);if(e.key==='ArrowLeft')chapter(ci-1)}});
+
+/* персонажи */
+const cast=[['Билби','Главный герой','2_11','Маленький сумчатый с огромными ушами. Любит ягоды, свою нору и покой. Сначала ворчит на птенца, а потом готов за него на всё. В базе IMDb его зовут Перри.',0],
+['Птенец','Главная героиня','4_21','Птенец альбатроса: белый пушистый комочек с огромными глазами. Ничего не умеет, зато очень доверяет Билби. В финале вырастает в большую красивую птицу.',0],
+['Динго','Опасность','3_25','Хитрые рыжие дикие собаки. Ходят вместе и считают, что птенец — отличный обед.',4],
+['Змея','Опасность','2_45','Первая серьёзная угроза на пути. Именно здесь Билби впервые спасает малыша.',3],
+['Скорпионы','Опасность','3_13','Целая армия красных скорпионов. Одна из многих ловушек пустыни.',3],
+['Хищная птица','Самая большая угроза','5_25','Огромная морская птица, которая нападает на утёсе. Самое страшное испытание для Билби.',5],
+['Альбатрос','Финал','7_02','Таким становится птенец. Он улетает, но возвращается к Билби.',0]];
+let pi=0;
+$('#castRow').innerHTML=cast.map((c,i)=>`<button class="av" data-i="${i}"><img src="th/${c[2]}.jpg" alt="" style="object-position:${i===0?'45%':'50%'} 40%">${c[0]}</button>`).join('');
+function pick(i){pi=i;const c=cast[i];setBg(c[2]);$$('.av').forEach((b,k)=>b.classList.toggle('on',k===i));
+  $('#who').innerHTML=`<span class="role">${c[1]}</span><h2>${c[0]}</h2><p>${c[3]}</p>${c[4]?`<div class="kick" style="margin:6px 0 0">Опасность</div><div class="danger">${[1,2,3,4,5].map(n=>`<i class="${n<=c[4]?'f':''}"></i>`).join('')}</div>`:''}`}
+$('#castRow').addEventListener('click',e=>{const b=e.target.closest('.av');if(b)pick(+b.dataset.i)});
+
+/* отзывы */
+const revs=[['Похоже на старые мультики про Багза Банни и Дорожного бегуна. А детям лучше не показывать — захотят себе такого же зверька.','Film Threat, Алан Нг · 8/10'],
+['Чудесный мультик про тревожного ушастого зверька, который неожиданно становится защитником брошенного птенца.','Laughing Squid'],
+['История о том, как важно никогда не сдаваться, даже когда всё против тебя.','Collater.al'],
+['Очень милый и совсем безобидный мультфильм.','Simbasible'],
+['Жаль, что большой фильм отменили. Хотелось бы увидеть этих героев на большом экране.','Зрители Letterboxd · около 3,6 из 5'],
+['Билби — как родитель: ради своего малыша готов на всё и уже не может остановиться.','Сами режиссёры']];
+let ri=0,rt=null;
+$('#dots').innerHTML=revs.map((_,i)=>`<button data-i="${i}" aria-label="Отзыв ${i+1}"></button>`).join('');
+function rev(i){ri=(i+revs.length)%revs.length;const q=$('#quote');q.style.opacity=0;setTimeout(()=>{q.textContent='«'+revs[ri][0]+'»';$('#qby').textContent='— '+revs[ri][1];q.style.opacity=1},200);
+  $$('#dots button').forEach((b,k)=>b.classList.toggle('on',k===ri));clearInterval(rt);rt=setInterval(()=>{if(location.hash==='#reviews')rev(ri+1)},7000)}
+$('#quote').style.transition='opacity .2s';
+$('#qp').onclick=()=>rev(ri-1);$('#qn').onclick=()=>rev(ri+1);
+$('#dots').addEventListener('click',e=>{const b=e.target.closest('button');if(b)rev(+b.dataset.i)});rev(0);
+let rate=5;const star='<svg viewBox="0 0 24 24"><path d="M12 2l3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z"/></svg>';
+$('#stars').innerHTML=[1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-label="${n} из 5">${star}</button>`).join('');
+const paint=()=>$$('#stars button').forEach(b=>b.classList.toggle('on',+b.dataset.n<=rate));paint();
+$('#stars').addEventListener('click',e=>{const b=e.target.closest('button');if(b){rate=+b.dataset.n;paint()}});
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mine(){const l=store.get('bilbyRev3',[]);$('#mine').innerHTML=l.map((r,i)=>`<div><b>${esc(r.n)}</b> <span style="color:#ffc94a">${'★'.repeat(r.r)}</span><br>${esc(r.t)} <button data-d="${i}" style="background:none;border:0;color:var(--soft);font-size:13px;padding:6px 0 0;min-height:32px">удалить</button></div>`).join('')}
+$('#rf').addEventListener('submit',e=>{e.preventDefault();const l=store.get('bilbyRev3',[]);l.unshift({n:$('#rn').value.trim(),t:$('#rt').value.trim(),r:rate});store.set('bilbyRev3',l);e.target.reset();rate=5;paint();mine()});
+$('#mine').addEventListener('click',e=>{const d=e.target.dataset.d;if(d!==undefined){const l=store.get('bilbyRev3',[]);l.splice(+d,1);store.set('bilbyRev3',l);mine()}});mine();
+
+/* мнение */
+const sc=[['Картинка и анимация',10],['История',9],['Юмор',9],['Эмоции',10],['Музыка',8]];
+$('#bars').innerHTML=sc.map(s=>`<div class="bar"><span>${s[0]}<span>${s[1]}/10</span></span><i><b data-w="${s[1]*10}"></b></i></div>`).join('');
+function bars(){$$('.bar i b').forEach(b=>{b.style.width='0';setTimeout(()=>b.style.width=b.dataset.w+'%',100)});let t=0;const st=setInterval(()=>{t=Math.min(9.5,+(t+.5).toFixed(1));$('#total').textContent=String(t).replace('.',',');if(t>=9.5)clearInterval(st)},60)}
+
+
+/* пыль пустыни */
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){const d=document.getElementById('dust');for(let i=0;i<34;i++){const e=document.createElement('i');const s=2+Math.random()*4;e.style.width=e.style.height=s+'px';e.style.left=(-20+Math.random()*90)+'%';e.style.top=(20+Math.random()*85)+'%';e.style.animationDuration=(14+Math.random()*18)+'s';e.style.animationDelay=(-Math.random()*30)+'s';d.append(e)}}
+
+show();
+}
+</script>
+</body>
+</html>
